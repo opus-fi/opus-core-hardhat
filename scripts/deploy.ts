@@ -1,18 +1,20 @@
-import { ethers } from "hardhat";
+import * as dotenv from 'dotenv';
+import { ethers } from 'hardhat';
+
+dotenv.config();
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const UniswapV2Factory = await ethers.getContractFactory('UniswapV2Factory');
+  const uniswapV2Factory = await UniswapV2Factory.deploy(
+    process.env.FEE_TO_SETTER || '',
+  );
 
-  const lockedAmount = ethers.utils.parseEther("1");
+  await uniswapV2Factory.deployed();
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  console.log('UniswapV2Factory deployed to: %s', uniswapV2Factory.address);
 
-  await lock.deployed();
-
-  console.log("Lock with 1 ETH deployed to:", lock.address);
+  const pairCodeHash = await uniswapV2Factory.pairCodeHash();
+  console.log('Pair code hash: %s', pairCodeHash);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
